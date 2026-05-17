@@ -1,0 +1,13 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nostegram.Fab.Api/Nostegram.Fab.Api.csproj" />
+    <Project Path="src/Nostegram.Fab.Application/Nostegram.Fab.Application.csproj" />
+    <Project Path="src/Nostegram.Fab.Contracts/Nostegram.Fab.Contracts.csproj" />
+    <Project Path="src/Nostegram.Fab.Domain/Nostegram.Fab.Domain.csproj" />
+    <Project Path="src/Nostegram.Fab.Infrastructure/Nostegram.Fab.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nostegram.Fab.UnitTests/Nostegram.Fab.UnitTests.csproj" />
+	<Project Path="tests/Nostegram.Fab.IntegrationTests/Nostegram.Fab.IntegrationTests.csproj" />
+  </Folder>
+</Solution>
