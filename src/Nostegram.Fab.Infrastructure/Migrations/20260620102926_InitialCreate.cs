@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -57,7 +58,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false, collation: "SQL_Latin1_General_CP1_CI_AS"),
                     PublicId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -72,7 +73,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false, collation: "SQL_Latin1_General_CP1_CI_AS"),
                     PublicId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -87,7 +88,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false, collation: "SQL_Latin1_General_CP1_CI_AS"),
                     PublicId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -119,7 +120,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false, collation: "SQL_Latin1_General_CP1_CI_AS"),
                     PublicId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -173,7 +174,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                         principalSchema: "dbo",
                         principalTable: "CardSubTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_CardCardSubType_Cards_CardId",
                         column: x => x.CardId,
@@ -200,7 +201,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                         principalSchema: "dbo",
                         principalTable: "CardTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_CardCardType_Cards_CardId",
                         column: x => x.CardId,
@@ -234,7 +235,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                         principalSchema: "dbo",
                         principalTable: "FabClasses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -261,7 +262,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                         principalSchema: "dbo",
                         principalTable: "Talents",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -336,16 +337,37 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                 column: "FlipCardId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CardSubTypes_Name",
+                schema: "dbo",
+                table: "CardSubTypes",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CardTalent_TalentsId",
                 schema: "dbo",
                 table: "CardTalent",
                 column: "TalentsId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CardTypes_Name",
+                schema: "dbo",
+                table: "CardTypes",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CardVariants_CardId",
                 schema: "dbo",
                 table: "CardVariants",
                 column: "CardId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FabClasses_Name",
+                schema: "dbo",
+                table: "FabClasses",
+                column: "Name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SetDetails_ArtistId",
@@ -364,6 +386,13 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                 schema: "dbo",
                 table: "SetDetails",
                 column: "SetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Talents_Name",
+                schema: "dbo",
+                table: "Talents",
+                column: "Name",
+                unique: true);
         }
 
         /// <inheritdoc />

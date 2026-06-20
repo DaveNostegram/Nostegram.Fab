@@ -1,4 +1,5 @@
-﻿using Nostegram.Fab.Domain;
+﻿using Microsoft.EntityFrameworkCore;
+using Nostegram.Fab.Domain;
 using Nostegram.Fab.Infrastructure.Persistence;
 using Nostegram.Fab.IntegrationTests.TestInfrastructure;
 using Xunit;
@@ -34,6 +35,45 @@ public abstract class BaseRepoTest : IAsyncLifetime
         await SeedSetDetail(set.Id, cardVariant.Id, artist.Id);
         return artist;
     }
+    public async Task<Card> SeedCardWithFullDetail(string name = "")
+    {
+        var card = await SeedCard(name);
+        var cardSubType = await SeedCardSubType();
+        var cardType = await SeedCardType();
+        var fabClass = await SeedFabClass();
+        var talent = await SeedTalent();
+
+        using var context = CreateContext();
+
+        var trackedCard = await context.Cards
+            .Include(x => x.CardSubTypes)
+            .Include(x => x.CardTypes)
+            .Include(x => x.FabClasses)
+            .Include(x => x.Talents)
+            .SingleAsync(x => x.PublicId == card.PublicId);
+
+        var trackedCardSubType = await context.CardSubTypes
+            .SingleAsync(x => x.PublicId == cardSubType.PublicId);
+
+        var trackedCardType = await context.CardTypes
+            .SingleAsync(x => x.PublicId == cardType.PublicId);
+
+        var trackedFabClass = await context.FabClasses
+            .SingleAsync(x => x.PublicId == fabClass.PublicId);
+
+        var trackedTalent = await context.Talents
+            .SingleAsync(x => x.PublicId == talent.PublicId);
+
+        trackedCard.CardSubTypes.Add(trackedCardSubType);
+        trackedCard.CardTypes.Add(trackedCardType);
+        trackedCard.FabClasses.Add(trackedFabClass);
+        trackedCard.Talents.Add(trackedTalent);
+
+        await context.SaveChangesAsync();
+
+        return trackedCard;
+    }
+
 
     public async Task<Artist> SeedArtist(string name = "")
     {
@@ -46,7 +86,50 @@ public abstract class BaseRepoTest : IAsyncLifetime
         await context.SaveChangesAsync();
         return newArtist;
     }
-
+    public async Task<CardSubType> SeedCardSubType(string name = "")
+    {
+        using var context = CreateContext();
+        var newCardSubType = new CardSubType
+        {
+            Name = name == "" ? "Attack" : name
+        };
+        context.CardSubTypes.Add(newCardSubType);
+        await context.SaveChangesAsync();
+        return newCardSubType;
+    }
+    public async Task<CardType> SeedCardType(string name = "")
+    {
+        using var context = CreateContext();
+        var newCardType = new CardType
+        {
+            Name = name == "" ? "Action" : name
+        };
+        context.CardTypes.Add(newCardType);
+        await context.SaveChangesAsync();
+        return newCardType;
+    }
+    public async Task<FabClass> SeedFabClass(string name = "")
+    {
+        using var context = CreateContext();
+        var newFabClass = new FabClass
+        {
+            Name = name == "" ? "Warrior" : name
+        };
+        context.FabClasses.Add(newFabClass);
+        await context.SaveChangesAsync();
+        return newFabClass;
+    }
+    public async Task<Talent> SeedTalent(string name = "")
+    {
+        using var context = CreateContext();
+        var newTalent = new Talent
+        {
+            Name = name == "" ? "Ice" : name
+        };
+        context.Talents.Add(newTalent);
+        await context.SaveChangesAsync();
+        return newTalent;
+    }
     public async Task<Card> SeedCard(string name = "")
     {
         using var context = CreateContext();

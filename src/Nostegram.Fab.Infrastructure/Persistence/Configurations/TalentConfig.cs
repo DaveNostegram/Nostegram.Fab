@@ -8,5 +8,10 @@ public class TalentConfig : IEntityTypeConfiguration<Talent>
 {
     public void Configure(EntityTypeBuilder<Talent> builder)
     {
+        builder.Property(a => a.Name)
+            .HasMaxLength(150)
+            .IsRequired()
+            .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+        builder.HasIndex(a => a.Name).IsUnique();
     }
 }

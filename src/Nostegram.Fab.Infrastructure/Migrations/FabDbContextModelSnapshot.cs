@@ -143,12 +143,17 @@ namespace Nostegram.Fab.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.Property<Guid>("PublicId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("CardSubTypes", "dbo");
                 });
@@ -163,12 +168,17 @@ namespace Nostegram.Fab.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.Property<Guid>("PublicId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("CardTypes", "dbo");
                 });
@@ -225,12 +235,17 @@ namespace Nostegram.Fab.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.Property<Guid>("PublicId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("FabClasses", "dbo");
                 });
@@ -310,12 +325,17 @@ namespace Nostegram.Fab.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.Property<Guid>("PublicId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Talents", "dbo");
                 });
@@ -331,7 +351,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                     b.HasOne("Nostegram.Fab.Domain.CardSubType", null)
                         .WithMany()
                         .HasForeignKey("CardSubTypesId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -346,7 +366,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                     b.HasOne("Nostegram.Fab.Domain.CardType", null)
                         .WithMany()
                         .HasForeignKey("CardTypesId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -361,7 +381,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                     b.HasOne("Nostegram.Fab.Domain.FabClass", null)
                         .WithMany()
                         .HasForeignKey("FabClassesId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -376,7 +396,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                     b.HasOne("Nostegram.Fab.Domain.Talent", null)
                         .WithMany()
                         .HasForeignKey("TalentsId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
