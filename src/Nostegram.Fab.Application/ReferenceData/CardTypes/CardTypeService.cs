@@ -19,7 +19,7 @@ public class CardTypeService(ICommit commit, ICardTypeRepository cardTypeReposit
         }
 
         if (await cardTypeRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(CardType.Name), displayName);
 
         var cardType = new CardType { Name = displayName };
 
@@ -63,7 +63,7 @@ public class CardTypeService(ICommit commit, ICardTypeRepository cardTypeReposit
         }
 
         if (await cardTypeRepository.ExistsByNameExcludingId(cardType.Id, displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(CardType.Name), displayName);
 
         cardType.Name = displayName;
 

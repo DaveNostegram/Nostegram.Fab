@@ -19,7 +19,7 @@ public class TalentService(ICommit commit, ITalentRepository talentRepository) :
         }
 
         if (await talentRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(Talent.Name), displayName);
 
         var talent = new Talent { Name = displayName };
 
@@ -63,7 +63,7 @@ public class TalentService(ICommit commit, ITalentRepository talentRepository) :
         }
 
         if (await talentRepository.ExistsByNameExcludingId(talent.Id, displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(Talent.Name), displayName);
 
         talent.Name = displayName;
 

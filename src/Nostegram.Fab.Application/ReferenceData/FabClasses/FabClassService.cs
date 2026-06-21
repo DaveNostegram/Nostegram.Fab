@@ -19,7 +19,7 @@ public class FabClassService(ICommit commit, IFabClassRepository fabClassReposit
         }
 
         if (await fabClassRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(FabClass.Name), displayName);
 
         var fabClass = new FabClass { Name = displayName };
 
@@ -63,7 +63,7 @@ public class FabClassService(ICommit commit, IFabClassRepository fabClassReposit
         }
 
         if (await fabClassRepository.ExistsByNameExcludingId(fabClass.Id, displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(FabClass.Name), displayName);
 
         fabClass.Name = displayName;
 

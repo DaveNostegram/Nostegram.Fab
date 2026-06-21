@@ -19,7 +19,7 @@ public class CardSubTypeService(ICommit commit, ICardSubTypeRepository cardSubTy
         }
 
         if (await cardSubTypeRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(CardSubType.Name), displayName);
 
         var cardSubType = new CardSubType { Name = displayName };
 
@@ -63,7 +63,7 @@ public class CardSubTypeService(ICommit commit, ICardSubTypeRepository cardSubTy
         }
 
         if (await cardSubTypeRepository.ExistsByNameExcludingId(cardSubType.Id, displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(CardSubType.Name), displayName);
 
         cardSubType.Name = displayName;
 

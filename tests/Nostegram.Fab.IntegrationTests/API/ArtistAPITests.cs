@@ -134,7 +134,7 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
 
         _factory.ArtistServiceMock
             .Setup(x => x.CreateArtist(It.IsAny<LookupItemWriteDto>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new AlreadyExistsException(request.Name));
+            .ThrowsAsync(new AlreadyExistsException("Name", request.Name));
 
         var response = await _client.PostAsJsonAsync("/api/artists", request);
 
@@ -145,7 +145,7 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
         problem.Should().NotBeNull();
         problem!.Status.Should().Be((int)HttpStatusCode.Conflict);
         problem.Title.Should().Be("Resource already exists.");
-        problem.Detail.Should().Be("'Existing Artist' already exists.");
+        problem.Detail.Should().Be("Name 'Existing Artist' already exists.");
     }
 
     [Fact]
@@ -344,7 +344,7 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
 
         _factory.ArtistServiceMock
             .Setup(x => x.UpdateArtist(artistId, It.IsAny<LookupItemWriteDto>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new AlreadyExistsException(request.Name));
+            .ThrowsAsync(new AlreadyExistsException("Name", request.Name));
 
         var response = await _client.PutAsJsonAsync($"/api/artists/{artistId}", request);
 
@@ -355,7 +355,7 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
         problem.Should().NotBeNull();
         problem!.Status.Should().Be((int)HttpStatusCode.Conflict);
         problem.Title.Should().Be("Resource already exists.");
-        problem.Detail.Should().Be("'Existing Artist' already exists.");
+        problem.Detail.Should().Be("Name 'Existing Artist' already exists.");
     }
 
     [Fact]

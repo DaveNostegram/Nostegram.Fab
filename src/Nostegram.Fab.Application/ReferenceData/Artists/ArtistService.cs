@@ -19,7 +19,7 @@ public class ArtistService(ICommit commit, IArtistRepository artistRepository) :
         }
 
         if (await artistRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(Artist.Name), displayName);
 
         var artist = new Artist { Name = displayName };
 
@@ -63,7 +63,7 @@ public class ArtistService(ICommit commit, IArtistRepository artistRepository) :
         }
 
         if (await artistRepository.ExistsByNameExcludingId(artist.Id, displayName, ct))
-            throw new AlreadyExistsException(displayName);
+            throw new AlreadyExistsException(nameof(Artist.Name), displayName);
 
         artist.Name = displayName;
 

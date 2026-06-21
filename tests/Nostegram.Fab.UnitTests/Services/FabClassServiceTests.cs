@@ -95,7 +95,7 @@ public sealed class FabClassServiceTests
         var ex = await Assert.ThrowsAsync<AlreadyExistsException>(
             () => service.CreateFabClass(dto, CancellationToken.None));
         // Assert
-        ex.Message.Should().Be($"'{dto.Name}' already exists.");
+        ex.Message.Should().Be($"Name '{dto.Name}' already exists.");
 
         repo.Verify(e => e.Create(It.Is<FabClass>(a => a.Name == dto.Name)), Times.Never());
         commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -342,7 +342,7 @@ public sealed class FabClassServiceTests
                     () => service.UpdateFabClass(searchPublicId, dto, CancellationToken.None));
 
         // Assert     
-        ex.Message.Should().Be($"'{dto.Name}' already exists.");
+        ex.Message.Should().Be($"Name '{dto.Name}' already exists.");
         repo.Verify(e => e.GetByPublicId(searchPublicId, It.IsAny<CancellationToken>()), Times.Once());
         repo.Verify(e => e.ExistsByNameExcludingId(artist.Id, dto.Name, It.IsAny<CancellationToken>()), Times.Once());
         commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never());
