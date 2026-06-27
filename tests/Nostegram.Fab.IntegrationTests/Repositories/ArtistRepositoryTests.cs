@@ -193,7 +193,7 @@ public sealed class ArtistRepositoryTests(DatabaseFixture fixture) : BaseRepoTes
     public async Task DeleteArtist_WhenReferencedBySetDetail_ThrowsDbUpdateException()
     {
         //Arrange
-        var newArtist = await SeedSetDetailWithArtist();
+        var newArtist = (await SeedSetDetail()).Artist;
         //Act
         using var actContext = CreateContext();
         var artist = await actContext.Artists.SingleAsync(x => x.PublicId == newArtist.PublicId);
@@ -342,7 +342,7 @@ public sealed class ArtistRepositoryTests(DatabaseFixture fixture) : BaseRepoTes
     {
         //Arrange
         using var context = CreateContext();
-        var artist = await SeedSetDetailWithArtist();
+        var artist = (await SeedSetDetail()).Artist;
         var artistRepo = new ArtistRepository(context);
         //Act
         var doesExist = await artistRepo.IsUsed(artist.Id, CancellationToken.None);
@@ -354,7 +354,7 @@ public sealed class ArtistRepositoryTests(DatabaseFixture fixture) : BaseRepoTes
     {
         //Arrange
         using var context = CreateContext();
-        var artist = await SeedSetDetailWithArtist();
+        var artist = (await SeedSetDetail()).Artist;
         var artist2 = await SeedArtist("Jeff Jeffington");
         var artistRepo = new ArtistRepository(context);
         //Act

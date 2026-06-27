@@ -39,20 +39,15 @@ public class SetRepository(FabDbContext context) : ISetRepository
     }
     public async Task<SetUniquenessResult> CheckUniqueness(string name, string setCode, int? excludingId, CancellationToken ct)
     {
-        var matches = await _context.Sets
-            .Where(x =>
-                (!excludingId.HasValue || x.Id != excludingId.Value) &&
-                (x.Name == name || x.SetCode == setCode))
-            .Select(x => new
-            {
-                x.Name,
-                x.SetCode
-            })
-            .ToListAsync(ct);
+        var result = await _context.Sets
+    .Where(x => !excludingId.HasValue || x.Id != excludingId.Value)
+    .GroupBy(_ => 1)
+    .Select(g => new SetUniquenessResult(
+        g.Any(x => x.Name == name),
+        g.Any(x => x.SetCode == setCode)))
+    .SingleOrDefaultAsync(ct);
 
-        return new SetUniquenessResult(
-            NameExists: matches.Any(x => x.Name == name),
-            SetCodeExists: matches.Any(x => x.SetCode == setCode));
+        return result ?? new SetUniquenessResult(false, false);
     }
     public async Task<bool> IsUsed(int id, CancellationToken ct)
     {

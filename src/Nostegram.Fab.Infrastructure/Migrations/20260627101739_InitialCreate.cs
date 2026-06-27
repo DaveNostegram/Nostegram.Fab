@@ -103,8 +103,8 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SetCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false, collation: "SQL_Latin1_General_CP1_CI_AS"),
+                    SetCode = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: false, collation: "SQL_Latin1_General_CP1_CI_AS"),
                     ReleaseDate = table.Column<DateOnly>(type: "date", nullable: false),
                     PublicId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
@@ -302,7 +302,7 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                         principalSchema: "dbo",
                         principalTable: "Sets",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -386,6 +386,20 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                 schema: "dbo",
                 table: "SetDetails",
                 column: "SetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sets_Name",
+                schema: "dbo",
+                table: "Sets",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sets_SetCode",
+                schema: "dbo",
+                table: "Sets",
+                column: "SetCode",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Talents_Name",

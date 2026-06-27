@@ -26,14 +26,14 @@ public abstract class BaseRepoTest : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    public async Task<Artist> SeedSetDetailWithArtist(string name = "")
+    public async Task<SetDetail> SeedSetDetail(string artistName = "", string cardName = "", string setName = "", string setCode = "", DateOnly? setReleaseDate = null)
     {
-        var artist = await SeedArtist(name);
-        var card = await SeedCard();
-        var set = await SeedSet();
+        var artist = await SeedArtist(artistName);
+        var card = await SeedCard(cardName);
+        var set = await SeedSet(setName, setCode, setReleaseDate);
         var cardVariant = await SeedCardVariant(card.Id);
-        await SeedSetDetail(set.Id, cardVariant.Id, artist.Id);
-        return artist;
+        var setDetail = await SeedSetDetail(set.Id, cardVariant.Id, artist.Id);
+        return setDetail;
     }
     public async Task<Card> SeedCardWithFullDetail(string name = "")
     {
@@ -148,7 +148,7 @@ public abstract class BaseRepoTest : IAsyncLifetime
         var set = new Set
         {
             Name = name == "" ? "Test Set" : name,
-            SetCode = setCode == "" ? "TEST" : setCode,
+            SetCode = setCode == "" ? "TET" : setCode,
             ReleaseDate = releaseDate == null ? DateOnly.FromDateTime(DateTime.Now) : releaseDate.Value,
         };
 
@@ -183,6 +183,11 @@ public abstract class BaseRepoTest : IAsyncLifetime
 
         context.SetDetails.Add(setDetail);
         await context.SaveChangesAsync();
-        return setDetail;
+
+        return await context.SetDetails
+            .Include(x => x.Artist)
+            .Include(x => x.Set)
+            .Include(x => x.CardVariant)
+            .SingleAsync(x => x.Id == setDetail.Id);
     }
 }
