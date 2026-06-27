@@ -189,7 +189,7 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
 
         _factory.ArtistServiceMock
             .Setup(x => x.DeleteArtist(artistId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new ConflictException("Test Artist", "SetDetail"));
+            .ThrowsAsync(new ConflictException("Test Artist", "Card"));
 
         var response = await _client.DeleteAsync($"/api/artists/{artistId}");
 
@@ -200,7 +200,7 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
         problem.Should().NotBeNull();
         problem!.Status.Should().Be((int)HttpStatusCode.Conflict);
         problem.Title.Should().Be("Conflict prevented action.");
-        problem.Detail.Should().Be("'Test Artist' is used by a 'SetDetail'.");
+        problem.Detail.Should().Be("'Test Artist' is used by a 'Card'.");
     }
 
     [Fact]

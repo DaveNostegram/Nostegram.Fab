@@ -44,7 +44,7 @@ public class ArtistService(ICommit commit, IArtistRepository artistRepository) :
             ?? throw new NotFoundException($"{publicId}");
 
         if (await artistRepository.IsUsed(artist.Id, ct))
-            throw new ConflictException(artist.Name, "SetDetail");
+            throw new ConflictException(artist.Name, "Card");
 
         artistRepository.Delete(artist);
 

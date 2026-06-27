@@ -14,20 +14,30 @@ public class SetService(ICommit commit, ISetRepository setRepository) : ISetServ
         var displayName = NameNormaliser.ForDisplay(dto.Name);
         var displaySetCode = NameNormaliser.ForDisplay(dto.SetCode);
 
+        var missingRequired = new HashSet<string>();
+
         if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(Set.Name));
-        }
+            missingRequired.Add(nameof(Set.Name));
+
+        if (string.IsNullOrWhiteSpace(displaySetCode))
+            missingRequired.Add(nameof(Set.SetCode));
+
+        if (missingRequired.Count > 0)
+            throw new RequiredFieldException(missingRequired);
 
         var uniqueness = await setRepository.CheckUniqueness(displayName, displaySetCode, null, ct);
 
+        var conflicts = new Dictionary<string, string>();
+
         if (uniqueness.NameExists)
-            throw new AlreadyExistsException(nameof(Set.Name), displayName);
+            conflicts.Add(nameof(Set.Name), displayName);
 
         if (uniqueness.SetCodeExists)
-            throw new AlreadyExistsException(nameof(Set.SetCode), displaySetCode);
+            conflicts.Add(nameof(Set.SetCode), displaySetCode);
 
-        //TODO: Release Date validation?
+        if (conflicts.Count > 0)
+            throw new AlreadyExistsException(conflicts);
+
         var set = new Set { Name = displayName, SetCode = displaySetCode, ReleaseDate = dto.ReleaseDate };
 
         setRepository.Create(set);
@@ -64,18 +74,29 @@ public class SetService(ICommit commit, ISetRepository setRepository) : ISetServ
 
         var displayName = NameNormaliser.ForDisplay(dto.Name);
         var displaySetCode = NameNormaliser.ForDisplay(dto.SetCode);
+        var missingRequired = new HashSet<string>();
+
         if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(Set.Name));
-        }
+            missingRequired.Add(nameof(Set.Name));
+
+        if (string.IsNullOrWhiteSpace(displaySetCode))
+            missingRequired.Add(nameof(Set.SetCode));
+
+        if (missingRequired.Count > 0)
+            throw new RequiredFieldException(missingRequired);
 
         var uniqueness = await setRepository.CheckUniqueness(displayName, displaySetCode, set.Id, ct);
 
+        var conflicts = new Dictionary<string, string>();
+
         if (uniqueness.NameExists)
-            throw new AlreadyExistsException(nameof(Set.Name), displayName);
+            conflicts.Add(nameof(Set.Name), displayName);
 
         if (uniqueness.SetCodeExists)
-            throw new AlreadyExistsException(nameof(Set.SetCode), displaySetCode);
+            conflicts.Add(nameof(Set.SetCode), displaySetCode);
+
+        if (conflicts.Count > 0)
+            throw new AlreadyExistsException(conflicts);
 
         set.Name = displayName;
         set.SetCode = displaySetCode;

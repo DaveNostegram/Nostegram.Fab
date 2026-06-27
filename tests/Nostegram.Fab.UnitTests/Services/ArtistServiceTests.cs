@@ -269,7 +269,7 @@ public sealed class ArtistServiceTests
                     () => service.DeleteArtist(artist.PublicId, CancellationToken.None));
 
         // Assert
-        ex.Message.Should().Be($"'{artist.Name}' is used by a 'SetDetail'.");
+        ex.Message.Should().Be($"'{artist.Name}' is used by a 'Card'.");
         repo.Verify(e => e.GetByPublicId(artist.PublicId, It.IsAny<CancellationToken>()), Times.Once());
         repo.Verify(e => e.IsUsed(artist.Id, It.IsAny<CancellationToken>()), Times.Once());
         repo.Verify(e => e.Delete(artist), Times.Never());
