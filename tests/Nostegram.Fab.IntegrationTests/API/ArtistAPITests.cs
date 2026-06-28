@@ -259,6 +259,11 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
         validationProblem.Should().NotBeNull();
 
         validationProblem!.Errors.Should().ContainKey("Name");
+
+        validationProblem.Errors["Name"]
+            .Should()
+            .Contain(x => x.Contains("must be 150 characters or fewer"));
+
     }
 
     [Fact]
