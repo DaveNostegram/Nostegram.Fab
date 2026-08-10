@@ -101,27 +101,6 @@ public sealed class FabClassServiceTests
         commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
     [Fact]
-    public async Task CreateFabClass_InvalidNameAfterNormalise_ThrowsRequiredFieldException()
-    {
-        // Arrange
-        var dto = new LookupItemWriteDto("           ");
-        var repo = new Mock<IFabClassRepository>();
-        var commit = new Mock<ICommit>();
-        var service = new FabClassService(commit.Object, repo.Object);
-
-        repo.Setup(r => r.ExistsByName(dto.Name, CancellationToken.None))
-            .ReturnsAsync(false);
-        // Act
-        var ex = await Assert.ThrowsAsync<RequiredFieldException>(
-            () => service.CreateFabClass(dto, CancellationToken.None));
-        // Assert
-        ex.Message.Should().Be($"'{nameof(FabClass.Name)}' is required.");
-
-        repo.Verify(e => e.Create(It.Is<FabClass>(a => a.Name == dto.Name)), Times.Never());
-        commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
     public async Task GetFabClass_ValidPublicId_ReturnsDto()
     {
         // Arrange
@@ -374,29 +353,5 @@ public sealed class FabClassServiceTests
         repo.Verify(e => e.GetByPublicId(searchPublicId, It.IsAny<CancellationToken>()), Times.Once());
         repo.Verify(e => e.ExistsByNameExcludingId(artist.Id, trueText, It.IsAny<CancellationToken>()), Times.Once());
         commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once());
-    }
-
-    [Fact]
-    public async Task UpdateFabClass_InvalidNameAfterNormalise_ThrowsRequiredFieldException()
-    {
-        // Arrange
-        var artist = new FabClass { Name = "Dave Davington" };
-        var searchPublicId = artist.PublicId;
-        var dto = new LookupItemWriteDto("      ");
-        var repo = new Mock<IFabClassRepository>();
-        var commit = new Mock<ICommit>();
-        var service = new FabClassService(commit.Object, repo.Object);
-
-        repo.Setup(r => r.GetByPublicId(searchPublicId, It.IsAny<CancellationToken>())).ReturnsAsync(artist);
-        repo.Setup(r => r.ExistsByNameExcludingId(artist.Id, dto.Name, It.IsAny<CancellationToken>())).ReturnsAsync(false);
-        // Act
-        var ex = await Assert.ThrowsAsync<RequiredFieldException>(
-                    () => service.UpdateFabClass(searchPublicId, dto, CancellationToken.None));
-
-        // Assert     
-        ex.Message.Should().Be($"'{nameof(FabClass.Name)}' is required.");
-        repo.Verify(e => e.GetByPublicId(searchPublicId, It.IsAny<CancellationToken>()), Times.Once());
-        repo.Verify(e => e.ExistsByNameExcludingId(artist.Id, dto.Name, It.IsAny<CancellationToken>()), Times.Never());
-        commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never());
     }
 }

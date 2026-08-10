@@ -131,4 +131,79 @@ public class SetApiTests : IClassFixture<ApiFactory>
             .Should()
             .Contain(x => x.Contains("must be 3 characters or fewer"));
     }
+
+    [Fact]
+    public async Task UpdateSet_ReturnsBadRequest_WhenNameAndSetCodeAreEmptyAfterNormalisation()
+    {
+        var publicId = Guid.NewGuid();
+        var request = new SetWriteDto("   ", "   ", DateOnly.FromDateTime(DateTime.UtcNow));
+
+        var response = await _client.PutAsJsonAsync($"/api/sets/{publicId}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var validationProblem =
+            await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+
+        validationProblem.Should().NotBeNull();
+
+        validationProblem!.Errors.Should().ContainKey("Name");
+
+        validationProblem.Errors["Name"]
+            .Should()
+            .Contain(x => x.Contains("must not be empty"));
+
+        validationProblem!.Errors.Should().ContainKey("SetCode");
+
+        validationProblem.Errors["SetCode"]
+            .Should()
+            .Contain(x => x.Contains("must not be empty"));
+    }
+    [Fact]
+    public async Task CreateSet_ReturnsBadRequest_WhenNameAndSetCodeAreEmptyAfterNormalisation()
+    {
+        var request = new SetWriteDto("   ", "    ", DateOnly.FromDateTime(DateTime.UtcNow));
+
+        var response = await _client.PostAsJsonAsync("/api/sets", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var validationProblem =
+            await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+
+        validationProblem.Should().NotBeNull();
+
+        validationProblem!.Errors.Should().ContainKey("Name");
+
+        validationProblem.Errors["Name"]
+            .Should()
+            .Contain(x => x.Contains("must not be empty"));
+
+        validationProblem!.Errors.Should().ContainKey("SetCode");
+
+        validationProblem.Errors["SetCode"]
+            .Should()
+            .Contain(x => x.Contains("must not be empty"));
+    }
+
+    [Fact]
+    public async Task CreateSet_ReturnsBadRequest_WhenDateIsDefault()
+    {
+        var request = new SetWriteDto("test", "tst", DateOnly.MinValue);
+
+        var response = await _client.PostAsJsonAsync("/api/sets", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var validationProblem =
+            await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+
+        validationProblem.Should().NotBeNull();
+
+        validationProblem!.Errors.Should().ContainKey("ReleaseDate");
+
+        validationProblem.Errors["ReleaseDate"]
+            .Should()
+            .Contain(x => x.Contains("Release date is required"));
+    }
 }

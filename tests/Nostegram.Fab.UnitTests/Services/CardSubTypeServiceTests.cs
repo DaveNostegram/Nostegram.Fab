@@ -101,27 +101,6 @@ public sealed class CardSubTypeServiceTests
         commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
     [Fact]
-    public async Task CreateCardSubType_InvalidNameAfterNormalise_ThrowsRequiredFieldException()
-    {
-        // Arrange
-        var dto = new LookupItemWriteDto("           ");
-        var repo = new Mock<ICardSubTypeRepository>();
-        var commit = new Mock<ICommit>();
-        var service = new CardSubTypeService(commit.Object, repo.Object);
-
-        repo.Setup(r => r.ExistsByName(dto.Name, CancellationToken.None))
-            .ReturnsAsync(false);
-        // Act
-        var ex = await Assert.ThrowsAsync<RequiredFieldException>(
-            () => service.CreateCardSubType(dto, CancellationToken.None));
-        // Assert
-        ex.Message.Should().Be($"'{nameof(CardSubType.Name)}' is required.");
-
-        repo.Verify(e => e.Create(It.Is<CardSubType>(a => a.Name == dto.Name)), Times.Never());
-        commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
     public async Task GetCardSubType_ValidPublicId_ReturnsDto()
     {
         // Arrange
@@ -374,29 +353,5 @@ public sealed class CardSubTypeServiceTests
         repo.Verify(e => e.GetByPublicId(searchPublicId, It.IsAny<CancellationToken>()), Times.Once());
         repo.Verify(e => e.ExistsByNameExcludingId(artist.Id, trueText, It.IsAny<CancellationToken>()), Times.Once());
         commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once());
-    }
-
-    [Fact]
-    public async Task UpdateCardSubType_InvalidNameAfterNormalise_ThrowsRequiredFieldException()
-    {
-        // Arrange
-        var artist = new CardSubType { Name = "Dave Davington" };
-        var searchPublicId = artist.PublicId;
-        var dto = new LookupItemWriteDto("      ");
-        var repo = new Mock<ICardSubTypeRepository>();
-        var commit = new Mock<ICommit>();
-        var service = new CardSubTypeService(commit.Object, repo.Object);
-
-        repo.Setup(r => r.GetByPublicId(searchPublicId, It.IsAny<CancellationToken>())).ReturnsAsync(artist);
-        repo.Setup(r => r.ExistsByNameExcludingId(artist.Id, dto.Name, It.IsAny<CancellationToken>())).ReturnsAsync(false);
-        // Act
-        var ex = await Assert.ThrowsAsync<RequiredFieldException>(
-                    () => service.UpdateCardSubType(searchPublicId, dto, CancellationToken.None));
-
-        // Assert     
-        ex.Message.Should().Be($"'{nameof(CardSubType.Name)}' is required.");
-        repo.Verify(e => e.GetByPublicId(searchPublicId, It.IsAny<CancellationToken>()), Times.Once());
-        repo.Verify(e => e.ExistsByNameExcludingId(artist.Id, dto.Name, It.IsAny<CancellationToken>()), Times.Never());
-        commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never());
     }
 }

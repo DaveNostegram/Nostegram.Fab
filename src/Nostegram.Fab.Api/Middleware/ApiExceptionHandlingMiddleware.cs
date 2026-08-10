@@ -17,7 +17,7 @@ public class ApiExceptionHandlingMiddleware(
         {
             if (exception is NotFoundException
                 or AlreadyExistsException
-                or RequiredFieldException
+                or ValidationException
                 or ConflictException)
             {
                 logger.LogInformation(exception, "Handled API exception");
@@ -47,7 +47,7 @@ public class ApiExceptionHandlingMiddleware(
                 type = "https://httpstatuses.com/409";
                 break;
 
-            case RequiredFieldException:
+            case ValidationException:
                 statusCode = StatusCodes.Status400BadRequest;
                 title = "Missing required field";
                 type = "https://httpstatuses.com/400";

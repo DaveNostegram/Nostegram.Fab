@@ -191,9 +191,6 @@ namespace Nostegram.Fab.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("Attack")
-                        .HasColumnType("int");
-
                     b.Property<int?>("Block")
                         .HasColumnType("int");
 
@@ -212,7 +209,10 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                     b.Property<int?>("Intellect")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Pitch")
+                    b.Property<int>("Pitch")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Power")
                         .HasColumnType("int");
 
                     b.Property<Guid>("PublicId")

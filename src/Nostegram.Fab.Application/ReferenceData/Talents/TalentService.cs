@@ -1,8 +1,8 @@
 ﻿using Nostegram.Fab.Application.Common.Interfaces;
-using Nostegram.Fab.Application.Common.Normalisations;
 using Nostegram.Fab.Application.Exceptions;
 using Nostegram.Fab.Application.ReferenceData.Talents.Interfaces;
 using Nostegram.Fab.Contracts.Common;
+using Nostegram.Fab.Contracts.Normalisations;
 using Nostegram.Fab.Domain;
 
 namespace Nostegram.Fab.Application.ReferenceData.Talents;
@@ -11,21 +11,14 @@ public class TalentService(ICommit commit, ITalentRepository talentRepository) :
 {
     public async Task<LookupItemDto> CreateTalent(LookupItemWriteDto dto, CancellationToken ct)
     {
-        var displayName = NameNormaliser.ForDisplay(dto.Name);
+        if (await talentRepository.ExistsByName(dto.Name, ct))
+            throw new AlreadyExistsException(nameof(Talent.Name), dto.Name);
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(Talent.Name));
-        }
-
-        if (await talentRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(nameof(Talent.Name), displayName);
-
-        var talent = new Talent { Name = displayName };
+        var talent = new Talent { Name = dto.Name };
 
         talentRepository.Create(talent);
         await commit.SaveChangesAsync(ct);
-        return new LookupItemDto(talent.PublicId, displayName);
+        return new LookupItemDto(talent.PublicId, dto.Name);
     }
     public async Task<LookupItemDto> GetTalent(Guid publicId, CancellationToken ct)
     {
@@ -55,19 +48,12 @@ public class TalentService(ICommit commit, ITalentRepository talentRepository) :
         var talent = await talentRepository.GetByPublicId(publicId, ct)
            ?? throw new NotFoundException($"{publicId}");
 
-        var displayName = NameNormaliser.ForDisplay(dto.Name);
+        if (await talentRepository.ExistsByNameExcludingId(talent.Id, dto.Name, ct))
+            throw new AlreadyExistsException(nameof(Talent.Name), dto.Name);
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(Talent.Name));
-        }
-
-        if (await talentRepository.ExistsByNameExcludingId(talent.Id, displayName, ct))
-            throw new AlreadyExistsException(nameof(Talent.Name), displayName);
-
-        talent.Name = displayName;
+        talent.Name = dto.Name;
 
         await commit.SaveChangesAsync(ct);
-        return new LookupItemDto(talent.PublicId, displayName);
+        return new LookupItemDto(talent.PublicId, dto.Name);
     }
 }

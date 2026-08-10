@@ -12,7 +12,7 @@ using Nostegram.Fab.Infrastructure.Persistence;
 namespace Nostegram.Fab.Infrastructure.Migrations
 {
     [DbContext(typeof(FabDbContext))]
-    [Migration("20260627101739_InitialCreate")]
+    [Migration("20260810083141_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -194,9 +194,6 @@ namespace Nostegram.Fab.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("Attack")
-                        .HasColumnType("int");
-
                     b.Property<int?>("Block")
                         .HasColumnType("int");
 
@@ -215,7 +212,10 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                     b.Property<int?>("Intellect")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Pitch")
+                    b.Property<int>("Pitch")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Power")
                         .HasColumnType("int");
 
                     b.Property<Guid>("PublicId")

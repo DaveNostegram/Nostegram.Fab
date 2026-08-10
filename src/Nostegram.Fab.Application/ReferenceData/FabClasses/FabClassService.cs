@@ -1,8 +1,8 @@
 ﻿using Nostegram.Fab.Application.Common.Interfaces;
-using Nostegram.Fab.Application.Common.Normalisations;
 using Nostegram.Fab.Application.Exceptions;
 using Nostegram.Fab.Application.ReferenceData.FabClasses.Interfaces;
 using Nostegram.Fab.Contracts.Common;
+using Nostegram.Fab.Contracts.Normalisations;
 using Nostegram.Fab.Domain;
 
 namespace Nostegram.Fab.Application.ReferenceData.FabClasses;
@@ -11,21 +11,14 @@ public class FabClassService(ICommit commit, IFabClassRepository fabClassReposit
 {
     public async Task<LookupItemDto> CreateFabClass(LookupItemWriteDto dto, CancellationToken ct)
     {
-        var displayName = NameNormaliser.ForDisplay(dto.Name);
+        if (await fabClassRepository.ExistsByName(dto.Name, ct))
+            throw new AlreadyExistsException(nameof(FabClass.Name), dto.Name);
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(FabClass.Name));
-        }
-
-        if (await fabClassRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(nameof(FabClass.Name), displayName);
-
-        var fabClass = new FabClass { Name = displayName };
+        var fabClass = new FabClass { Name = dto.Name };
 
         fabClassRepository.Create(fabClass);
         await commit.SaveChangesAsync(ct);
-        return new LookupItemDto(fabClass.PublicId, displayName);
+        return new LookupItemDto(fabClass.PublicId, dto.Name);
     }
     public async Task<LookupItemDto> GetFabClass(Guid publicId, CancellationToken ct)
     {
@@ -55,19 +48,12 @@ public class FabClassService(ICommit commit, IFabClassRepository fabClassReposit
         var fabClass = await fabClassRepository.GetByPublicId(publicId, ct)
            ?? throw new NotFoundException($"{publicId}");
 
-        var displayName = NameNormaliser.ForDisplay(dto.Name);
+        if (await fabClassRepository.ExistsByNameExcludingId(fabClass.Id, dto.Name, ct))
+            throw new AlreadyExistsException(nameof(FabClass.Name), dto.Name);
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(FabClass.Name));
-        }
-
-        if (await fabClassRepository.ExistsByNameExcludingId(fabClass.Id, displayName, ct))
-            throw new AlreadyExistsException(nameof(FabClass.Name), displayName);
-
-        fabClass.Name = displayName;
+        fabClass.Name = dto.Name;
 
         await commit.SaveChangesAsync(ct);
-        return new LookupItemDto(fabClass.PublicId, displayName);
+        return new LookupItemDto(fabClass.PublicId, dto.Name);
     }
 }

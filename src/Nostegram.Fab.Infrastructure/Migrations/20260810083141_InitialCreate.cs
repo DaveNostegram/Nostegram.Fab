@@ -138,10 +138,10 @@ namespace Nostegram.Fab.Infrastructure.Migrations
                     CardText = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Cost = table.Column<int>(type: "int", nullable: true),
                     Block = table.Column<int>(type: "int", nullable: true),
-                    Attack = table.Column<int>(type: "int", nullable: true),
+                    Power = table.Column<int>(type: "int", nullable: true),
                     Health = table.Column<int>(type: "int", nullable: true),
                     Intellect = table.Column<int>(type: "int", nullable: true),
-                    Pitch = table.Column<int>(type: "int", nullable: true),
+                    Pitch = table.Column<int>(type: "int", nullable: false),
                     CardId = table.Column<int>(type: "int", nullable: false),
                     PublicId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },

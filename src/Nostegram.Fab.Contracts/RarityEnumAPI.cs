@@ -1,6 +1,6 @@
-﻿namespace Nostegram.Fab.Domain;
+namespace Nostegram.Fab.Contracts;
 
-public enum RarityEnum
+public enum RarityEnumAPI
 {
     Common = 1,
     Rare = 2,
@@ -12,4 +12,5 @@ public enum RarityEnum
     Promo = 8,
     Basic = 9,
     Marvel = 10
+
 }

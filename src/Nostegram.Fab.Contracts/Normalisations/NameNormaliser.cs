@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 
-namespace Nostegram.Fab.Application.Common.Normalisations;
+namespace Nostegram.Fab.Contracts.Normalisations;
 
-public static class NameNormaliser
+internal static class NameNormaliser
 {
     public static string ForDisplay(string? value)
     {

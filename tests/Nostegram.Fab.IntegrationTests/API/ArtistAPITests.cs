@@ -245,6 +245,27 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task CreateArtist_ReturnsBadRequest_WhenNameIsNormalisedAsEmpty()
+    {
+        var request = new LookupItemWriteDto("   ");
+
+        var response = await _client.PostAsJsonAsync("/api/artists", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var validationProblem =
+            await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+
+        validationProblem.Should().NotBeNull();
+
+        validationProblem!.Errors.Should().ContainKey("Name");
+
+        validationProblem.Errors["Name"]
+            .Should()
+            .Contain(x => x.Contains("must not be empty"));
+    }
+
+    [Fact]
     public async Task CreateArtist_ReturnsBadRequest_WhenNameExceedsMaxLength()
     {
         var request = new LookupItemWriteDto(new string('A', 151));
@@ -271,6 +292,28 @@ public class ArtistApiTests : IClassFixture<ApiFactory>
     {
         var publicId = Guid.NewGuid();
         var request = new LookupItemWriteDto("");
+
+        var response = await _client.PutAsJsonAsync($"/api/artists/{publicId}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var validationProblem =
+            await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+
+        validationProblem.Should().NotBeNull();
+
+        validationProblem!.Errors.Should().ContainKey("Name");
+
+        validationProblem.Errors["Name"]
+            .Should()
+            .Contain(x => x.Contains("must not be empty"));
+    }
+
+    [Fact]
+    public async Task UpdateArtist_ReturnsBadRequest_WhenNameIsNormalisedAsEmpty()
+    {
+        var publicId = Guid.NewGuid();
+        var request = new LookupItemWriteDto("    ");
 
         var response = await _client.PutAsJsonAsync($"/api/artists/{publicId}", request);
 

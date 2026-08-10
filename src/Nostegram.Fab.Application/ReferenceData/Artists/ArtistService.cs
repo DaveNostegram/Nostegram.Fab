@@ -1,8 +1,8 @@
 ﻿using Nostegram.Fab.Application.Common.Interfaces;
-using Nostegram.Fab.Application.Common.Normalisations;
 using Nostegram.Fab.Application.Exceptions;
 using Nostegram.Fab.Application.ReferenceData.Artists.Interfaces;
 using Nostegram.Fab.Contracts.Common;
+using Nostegram.Fab.Contracts.Normalisations;
 using Nostegram.Fab.Domain;
 
 namespace Nostegram.Fab.Application.ReferenceData.Artists;
@@ -11,21 +11,14 @@ public class ArtistService(ICommit commit, IArtistRepository artistRepository) :
 {
     public async Task<LookupItemDto> CreateArtist(LookupItemWriteDto dto, CancellationToken ct)
     {
-        var displayName = NameNormaliser.ForDisplay(dto.Name);
+        if (await artistRepository.ExistsByName(dto.Name, ct))
+            throw new AlreadyExistsException(nameof(Artist.Name), dto.Name);
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(Artist.Name));
-        }
-
-        if (await artistRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(nameof(Artist.Name), displayName);
-
-        var artist = new Artist { Name = displayName };
+        var artist = new Artist { Name = dto.Name };
 
         artistRepository.Create(artist);
         await commit.SaveChangesAsync(ct);
-        return new LookupItemDto(artist.PublicId, displayName);
+        return new LookupItemDto(artist.PublicId, dto.Name);
     }
     public async Task<LookupItemDto> GetArtist(Guid publicId, CancellationToken ct)
     {
@@ -55,19 +48,12 @@ public class ArtistService(ICommit commit, IArtistRepository artistRepository) :
         var artist = await artistRepository.GetByPublicId(publicId, ct)
            ?? throw new NotFoundException($"{publicId}");
 
-        var displayName = NameNormaliser.ForDisplay(dto.Name);
+        if (await artistRepository.ExistsByNameExcludingId(artist.Id, dto.Name, ct))
+            throw new AlreadyExistsException(nameof(Artist.Name), dto.Name);
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(Artist.Name));
-        }
-
-        if (await artistRepository.ExistsByNameExcludingId(artist.Id, displayName, ct))
-            throw new AlreadyExistsException(nameof(Artist.Name), displayName);
-
-        artist.Name = displayName;
+        artist.Name = dto.Name;
 
         await commit.SaveChangesAsync(ct);
-        return new LookupItemDto(artist.PublicId, displayName);
+        return new LookupItemDto(artist.PublicId, dto.Name);
     }
 }

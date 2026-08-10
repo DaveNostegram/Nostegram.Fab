@@ -1,8 +1,8 @@
 ﻿using Nostegram.Fab.Application.Common.Interfaces;
-using Nostegram.Fab.Application.Common.Normalisations;
 using Nostegram.Fab.Application.Exceptions;
 using Nostegram.Fab.Application.ReferenceData.CardSubTypes.Interfaces;
 using Nostegram.Fab.Contracts.Common;
+using Nostegram.Fab.Contracts.Normalisations;
 using Nostegram.Fab.Domain;
 
 namespace Nostegram.Fab.Application.ReferenceData.CardSubTypes;
@@ -11,21 +11,14 @@ public class CardSubTypeService(ICommit commit, ICardSubTypeRepository cardSubTy
 {
     public async Task<LookupItemDto> CreateCardSubType(LookupItemWriteDto dto, CancellationToken ct)
     {
-        var displayName = NameNormaliser.ForDisplay(dto.Name);
+        if (await cardSubTypeRepository.ExistsByName(dto.Name, ct))
+            throw new AlreadyExistsException(nameof(CardSubType.Name), dto.Name);
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(CardSubType.Name));
-        }
-
-        if (await cardSubTypeRepository.ExistsByName(displayName, ct))
-            throw new AlreadyExistsException(nameof(CardSubType.Name), displayName);
-
-        var cardSubType = new CardSubType { Name = displayName };
+        var cardSubType = new CardSubType { Name = dto.Name };
 
         cardSubTypeRepository.Create(cardSubType);
         await commit.SaveChangesAsync(ct);
-        return new LookupItemDto(cardSubType.PublicId, displayName);
+        return new LookupItemDto(cardSubType.PublicId, dto.Name);
     }
     public async Task<LookupItemDto> GetCardSubType(Guid publicId, CancellationToken ct)
     {
@@ -55,19 +48,12 @@ public class CardSubTypeService(ICommit commit, ICardSubTypeRepository cardSubTy
         var cardSubType = await cardSubTypeRepository.GetByPublicId(publicId, ct)
            ?? throw new NotFoundException($"{publicId}");
 
-        var displayName = NameNormaliser.ForDisplay(dto.Name);
+        if (await cardSubTypeRepository.ExistsByNameExcludingId(cardSubType.Id, dto.Name, ct))
+            throw new AlreadyExistsException(nameof(CardSubType.Name), dto.Name);
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new RequiredFieldException(nameof(CardSubType.Name));
-        }
-
-        if (await cardSubTypeRepository.ExistsByNameExcludingId(cardSubType.Id, displayName, ct))
-            throw new AlreadyExistsException(nameof(CardSubType.Name), displayName);
-
-        cardSubType.Name = displayName;
+        cardSubType.Name = dto.Name;
 
         await commit.SaveChangesAsync(ct);
-        return new LookupItemDto(cardSubType.PublicId, displayName);
+        return new LookupItemDto(cardSubType.PublicId, dto.Name);
     }
 }

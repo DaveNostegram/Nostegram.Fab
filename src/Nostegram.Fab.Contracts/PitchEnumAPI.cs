@@ -1,6 +1,6 @@
-﻿namespace Nostegram.Fab.Domain;
+namespace Nostegram.Fab.Contracts;
 
-public enum PitchEnum
+public enum PitchEnumAPI
 {
     NoPitch = 0,
     Colourless = 1,

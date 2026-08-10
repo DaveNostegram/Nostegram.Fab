@@ -14,7 +14,7 @@ public class SetWriteDtoValidator
         RuleFor(x => x.SetCode)
             .NotEmpty()
             .MaximumLength(3);
-        RuleFor(x => x.SetCode)
+        RuleFor(x => x.ReleaseDate)
             .Must(date => date != default)
             .WithMessage("Release date is required.");
     }
