@@ -24,6 +24,12 @@ public class TalentRepository(FabDbContext context) : ITalentRepository
             .Select(e => new LookupItemDto(e.PublicId, e.Name))
             .SingleOrDefaultAsync(ct);
     }
+    public async Task<List<Talent>> GetTalentsByPublicIds(IEnumerable<Guid> publicIds, CancellationToken ct)
+    {
+        return await _context.Talents
+            .Where(t => publicIds.Contains(t.PublicId))
+            .ToListAsync(ct);
+    }
 
     public async Task<List<LookupItemDto>> GetAll(CancellationToken ct)
     {

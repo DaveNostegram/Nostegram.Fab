@@ -8,6 +8,7 @@ public interface ICardSubTypeRepository
     void Create(CardSubType cardSubType);
     Task<CardSubType?> GetByPublicId(Guid publicId, CancellationToken ct);
     Task<LookupItemDto?> GetDtoByPublicId(Guid publicId, CancellationToken ct);
+    Task<List<CardSubType>> GetCardSubTypesByPublicIds(IEnumerable<Guid> publicIds, CancellationToken ct);
     Task<List<LookupItemDto>> GetAll(CancellationToken ct);
     void Delete(CardSubType cardSubType);
     Task<bool> ExistsByName(string name, CancellationToken ct);

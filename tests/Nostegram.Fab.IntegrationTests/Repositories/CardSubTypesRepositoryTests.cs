@@ -142,6 +142,52 @@ public sealed class CardSubTypeRepositoryTests(DatabaseFixture fixture) : BaseRe
     }
 
     [Fact]
+    public async Task GetCardSubTypeIds_ValidIds_ReturnsDto()
+    {
+        //Arrange
+        var newCardSubType1 = await SeedCardSubType("CardSubType 1");
+        var newCardSubType2 = await SeedCardSubType("CardSubType 2");
+        using var context = CreateContext();
+        var cardSubTypeRepo = new CardSubTypeRepository(context);
+        //Act
+        var cardSubTypes = await cardSubTypeRepo.GetCardSubTypesByPublicIds([newCardSubType1.PublicId, newCardSubType2.PublicId], CancellationToken.None);
+        //Assert
+        cardSubTypes.Count.Should().Be(2);
+        cardSubTypes.Should().NotBeNull();
+        cardSubTypes.FirstOrDefault(e => e.Id == newCardSubType1.Id).Should().NotBeNull();
+        cardSubTypes.FirstOrDefault(e => e.Id == newCardSubType2.Id).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetCardSubTypeIds_ValidAndInvalidId_ReturnsOneResult()
+    {
+        //Arrange
+        using var context = CreateContext();
+        var newCardSubType1 = await SeedCardSubType("CardSubType 1");
+        var cardSubTypeId = Guid.Empty;
+        var cardSubTypeRepo = new CardSubTypeRepository(context);
+        //Act
+        var cardSubTypes = await cardSubTypeRepo.GetCardSubTypesByPublicIds([newCardSubType1.PublicId, cardSubTypeId], CancellationToken.None);
+        //Assert
+        cardSubTypes.Count.Should().Be(1);
+        cardSubTypes.FirstOrDefault(e => e.Id == newCardSubType1.Id).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetCardSubTypeIds_InvalidId_ReturnsNull()
+    {
+        //Arrange
+        using var context = CreateContext();
+        var cardSubTypeId = Guid.Empty;
+        var cardSubTypeRepo = new CardSubTypeRepository(context);
+        //Act
+        var cardSubTypes = await cardSubTypeRepo.GetCardSubTypesByPublicIds([cardSubTypeId], CancellationToken.None);
+        //Assert
+        cardSubTypes.Count.Should().Be(0);
+        cardSubTypes.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task GetAllCardSubTypes_ReturnsList()
     {
         //Arrange

@@ -24,7 +24,12 @@ public class CardSubTypeRepository(FabDbContext context) : ICardSubTypeRepositor
             .Select(e => new LookupItemDto(e.PublicId, e.Name))
             .SingleOrDefaultAsync(ct);
     }
-
+    public async Task<List<CardSubType>> GetCardSubTypesByPublicIds(IEnumerable<Guid> publicIds, CancellationToken ct)
+    {
+        return await _context.CardSubTypes
+            .Where(t => publicIds.Contains(t.PublicId))
+           .ToListAsync(ct);
+    }
     public async Task<List<LookupItemDto>> GetAll(CancellationToken ct)
     {
         return await _context.CardSubTypes

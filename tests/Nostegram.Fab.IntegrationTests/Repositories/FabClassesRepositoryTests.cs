@@ -142,6 +142,53 @@ public sealed class FabClassRepositoryTests(DatabaseFixture fixture) : BaseRepoT
     }
 
     [Fact]
+    public async Task GetFabClassIds_ValidIds_ReturnsDto()
+    {
+        //Arrange
+        var newFabClass1 = await SeedFabClass("FabClass 1");
+        var newFabClass2 = await SeedFabClass("FabClass 2");
+        using var context = CreateContext();
+        var fabClassRepo = new FabClassRepository(context);
+        //Act
+        var fabClasses = await fabClassRepo.GetFabClassesByPublicIds([newFabClass1.PublicId, newFabClass2.PublicId], CancellationToken.None);
+        //Assert
+        fabClasses.Count.Should().Be(2);
+        fabClasses.Should().NotBeNull();
+        fabClasses.FirstOrDefault(e => e.Id == newFabClass1.Id).Should().NotBeNull();
+        fabClasses.FirstOrDefault(e => e.Id == newFabClass2.Id).Should().NotBeNull();
+
+    }
+
+    [Fact]
+    public async Task GetFabClassIds_ValidAndInvalidId_ReturnsOneResult()
+    {
+        //Arrange
+        using var context = CreateContext();
+        var newFabClass1 = await SeedFabClass("FabClass 1");
+        var fabClassId = Guid.Empty;
+        var fabClassRepo = new FabClassRepository(context);
+        //Act
+        var fabClasses = await fabClassRepo.GetFabClassesByPublicIds([newFabClass1.PublicId, fabClassId], CancellationToken.None);
+        //Assert
+        fabClasses.Count.Should().Be(1);
+        fabClasses.FirstOrDefault(e => e.Id == newFabClass1.Id).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetFabClassIds_InvalidId_ReturnsNull()
+    {
+        //Arrange
+        using var context = CreateContext();
+        var fabClassId = Guid.Empty;
+        var fabClassRepo = new FabClassRepository(context);
+        //Act
+        var fabClasses = await fabClassRepo.GetFabClassesByPublicIds([fabClassId], CancellationToken.None);
+        //Assert
+        fabClasses.Count.Should().Be(0);
+        fabClasses.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task GetAllFabClasses_ReturnsList()
     {
         //Arrange

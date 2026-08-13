@@ -7,6 +7,7 @@ public interface ITalentRepository
 {
     void Create(Talent talent);
     Task<Talent?> GetByPublicId(Guid publicId, CancellationToken ct);
+    Task<List<Talent>> GetTalentsByPublicIds(IEnumerable<Guid> publicIds, CancellationToken ct);
     Task<LookupItemDto?> GetDtoByPublicId(Guid publicId, CancellationToken ct);
     Task<List<LookupItemDto>> GetAll(CancellationToken ct);
     void Delete(Talent talent);

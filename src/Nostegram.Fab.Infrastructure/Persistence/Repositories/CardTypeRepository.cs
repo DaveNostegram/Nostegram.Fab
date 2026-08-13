@@ -17,6 +17,12 @@ public class CardTypeRepository(FabDbContext context) : ICardTypeRepository
     {
         return await _context.CardTypes.Where(e => e.PublicId == publicId).SingleOrDefaultAsync(ct);
     }
+    public async Task<List<CardType>> GetCardTypesByPublicIds(IEnumerable<Guid> publicIds, CancellationToken ct)
+    {
+        return await _context.CardTypes
+            .Where(t => publicIds.Contains(t.PublicId))
+            .ToListAsync(ct);
+    }
     public async Task<LookupItemDto?> GetDtoByPublicId(Guid publicId, CancellationToken ct)
     {
         return await _context.CardTypes

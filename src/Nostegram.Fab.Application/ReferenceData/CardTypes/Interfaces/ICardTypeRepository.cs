@@ -8,6 +8,7 @@ public interface ICardTypeRepository
     void Create(CardType cardType);
     Task<CardType?> GetByPublicId(Guid publicId, CancellationToken ct);
     Task<LookupItemDto?> GetDtoByPublicId(Guid publicId, CancellationToken ct);
+    Task<List<CardType>> GetCardTypesByPublicIds(IEnumerable<Guid> publicIds, CancellationToken ct);
     Task<List<LookupItemDto>> GetAll(CancellationToken ct);
     void Delete(CardType cardType);
     Task<bool> ExistsByName(string name, CancellationToken ct);

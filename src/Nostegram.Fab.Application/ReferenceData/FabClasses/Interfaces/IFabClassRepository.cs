@@ -8,6 +8,7 @@ public interface IFabClassRepository
     void Create(FabClass fabClass);
     Task<FabClass?> GetByPublicId(Guid publicId, CancellationToken ct);
     Task<LookupItemDto?> GetDtoByPublicId(Guid publicId, CancellationToken ct);
+    Task<List<FabClass>> GetFabClassesByPublicIds(IEnumerable<Guid> publicIds, CancellationToken ct);
     Task<List<LookupItemDto>> GetAll(CancellationToken ct);
     void Delete(FabClass fabClass);
     Task<bool> ExistsByName(string name, CancellationToken ct);

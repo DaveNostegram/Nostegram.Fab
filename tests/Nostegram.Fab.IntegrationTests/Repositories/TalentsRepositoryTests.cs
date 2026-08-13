@@ -142,6 +142,52 @@ public sealed class TalentRepositoryTests(DatabaseFixture fixture) : BaseRepoTes
     }
 
     [Fact]
+    public async Task GetTalentIds_ValidIds_ReturnsDto()
+    {
+        //Arrange
+        var newTalent1 = await SeedTalent("Talent 1");
+        var newTalent2 = await SeedTalent("Talent 2");
+        using var context = CreateContext();
+        var talentRepo = new TalentRepository(context);
+        //Act
+        var talents = await talentRepo.GetTalentsByPublicIds([newTalent1.PublicId, newTalent2.PublicId], CancellationToken.None);
+        //Assert
+        talents.Count.Should().Be(2);
+        talents.Should().NotBeNull();
+        talents.FirstOrDefault(e => e.Id == newTalent1.Id).Should().NotBeNull();
+        talents.FirstOrDefault(e => e.Id == newTalent2.Id).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetTalentIds_ValidAndInvalidId_ReturnsOneResult()
+    {
+        //Arrange
+        using var context = CreateContext();
+        var newTalent1 = await SeedTalent("Talent 1");
+        var talentId = Guid.Empty;
+        var talentRepo = new TalentRepository(context);
+        //Act
+        var talents = await talentRepo.GetTalentsByPublicIds([newTalent1.PublicId, talentId], CancellationToken.None);
+        //Assert
+        talents.Count.Should().Be(1);
+        talents.FirstOrDefault(e => e.Id == newTalent1.Id).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetTalentIds_InvalidId_ReturnsNull()
+    {
+        //Arrange
+        using var context = CreateContext();
+        var talentId = Guid.Empty;
+        var talentRepo = new TalentRepository(context);
+        //Act
+        var talents = await talentRepo.GetTalentsByPublicIds([talentId], CancellationToken.None);
+        //Assert
+        talents.Count.Should().Be(0);
+        talents.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task GetAllTalents_ReturnsList()
     {
         //Arrange

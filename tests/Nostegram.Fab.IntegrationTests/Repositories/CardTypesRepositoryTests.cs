@@ -142,6 +142,52 @@ public sealed class CardTypeRepositoryTests(DatabaseFixture fixture) : BaseRepoT
     }
 
     [Fact]
+    public async Task GetCardTypeIds_ValidIds_ReturnsDto()
+    {
+        //Arrange
+        var newCardType1 = await SeedCardType("CardType 1");
+        var newCardType2 = await SeedCardType("CardType 2");
+        using var context = CreateContext();
+        var cardTypeRepo = new CardTypeRepository(context);
+        //Act
+        var cardTypes = await cardTypeRepo.GetCardTypesByPublicIds([newCardType1.PublicId, newCardType2.PublicId], CancellationToken.None);
+        //Assert
+        cardTypes.Count.Should().Be(2);
+        cardTypes.Should().NotBeNull();
+        cardTypes.FirstOrDefault(e => e.Id == newCardType1.Id).Should().NotBeNull();
+        cardTypes.FirstOrDefault(e => e.Id == newCardType2.Id).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetCardTypeIds_ValidAndInvalidId_ReturnsOneResult()
+    {
+        //Arrange
+        using var context = CreateContext();
+        var newCardType1 = await SeedCardType("CardType 1");
+        var cardTypeId = Guid.Empty;
+        var cardTypeRepo = new CardTypeRepository(context);
+        //Act
+        var cardTypes = await cardTypeRepo.GetCardTypesByPublicIds([newCardType1.PublicId, cardTypeId], CancellationToken.None);
+        //Assert
+        cardTypes.Count.Should().Be(1);
+        cardTypes.FirstOrDefault(e => e.Id == newCardType1.Id).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetCardTypeIds_InvalidId_ReturnsNull()
+    {
+        //Arrange
+        using var context = CreateContext();
+        var cardTypeId = Guid.Empty;
+        var cardTypeRepo = new CardTypeRepository(context);
+        //Act
+        var cardTypes = await cardTypeRepo.GetCardTypesByPublicIds([cardTypeId], CancellationToken.None);
+        //Assert
+        cardTypes.Count.Should().Be(0);
+        cardTypes.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task GetAllCardTypes_ReturnsList()
     {
         //Arrange

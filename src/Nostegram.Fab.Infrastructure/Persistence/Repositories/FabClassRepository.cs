@@ -25,6 +25,13 @@ public class FabClassRepository(FabDbContext context) : IFabClassRepository
             .SingleOrDefaultAsync(ct);
     }
 
+    public async Task<List<FabClass>> GetFabClassesByPublicIds(IEnumerable<Guid> publicIds, CancellationToken ct)
+    {
+        return await _context.FabClasses
+            .Where(t => publicIds.Contains(t.PublicId))
+            .ToListAsync(ct);
+    }
+
     public async Task<List<LookupItemDto>> GetAll(CancellationToken ct)
     {
         return await _context.FabClasses

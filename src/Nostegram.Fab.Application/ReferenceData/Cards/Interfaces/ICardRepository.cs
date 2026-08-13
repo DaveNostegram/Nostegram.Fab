@@ -11,7 +11,6 @@ public interface ICardRepository
     Task<CardDto?> GetDtoByPublicId(Guid publicId, CancellationToken ct);
     Task<List<CardDto?>> GetAll(CancellationToken ct);
     void Delete(Card card);
-    Task<bool> ExistsByName(string name, CancellationToken ct);
-    Task<bool> ExistsByNameExcludingId(int excludingCardId, string name, CancellationToken ct);
+    Task<bool> Exists(string name, int? excludingCardId, CancellationToken ct);
     Task<bool> IsUsed(int Id, CancellationToken ct);
 }
