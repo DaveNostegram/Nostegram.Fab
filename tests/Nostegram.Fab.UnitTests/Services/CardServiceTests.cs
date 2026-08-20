@@ -13,6 +13,7 @@ using Nostegram.Fab.Application.ReferenceData.CardSubTypes.Interfaces;
 using Nostegram.Fab.Application.ReferenceData.FabClasses.Interfaces;
 using Nostegram.Fab.Application.ReferenceData.Artists.Interfaces;
 using Nostegram.Fab.Application.ReferenceData.Sets.Interfaces;
+using Nostegram.Fab.Application.Exceptions;
 
 namespace Nostegram.Fab.UnitTests.Services;
 
@@ -256,110 +257,199 @@ public sealed class CardServiceTests
         cardRepo.Verify(r => r.Create(It.Is<Card>(a => a.Name == dto.Name)), Times.Once);
         commit.Verify(c => c.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
+    [Fact]
+    public async Task CreateCard_NameAlreadyExists_ThrowsAlreadyExistsException()
+    {
+        // Arrange
+        var lightningTalent = Guid.NewGuid();
+        var actionType = Guid.NewGuid();
+        var attackSubType = Guid.NewGuid();
+        var auroraSetId = Guid.NewGuid();
+        var fryArtist = Guid.NewGuid();
+        var dto = new CardWriteDto
+        {
+            Name = "Fry",
+            Talents = [lightningTalent],
+            CardTypes = [actionType],
+            CardSubTypes = [attackSubType],
+            CardVariants = [
+                new CardVariantWriteDto {
+                CardText = "Go again",
+                Cost = 0,
+                Block = 0,
+                Power = 3,
+                Pitch = Contracts.PitchEnumAPI.Red,
+                SetDetails = [
+                    new SetDetailWriteDto {
+                        Rarity = Contracts.RarityEnumAPI.Common,
+                        SetId = auroraSetId,
+                        CollectorNumber = "AUR008",
+                        ArtistId = fryArtist
+                        }
+                    ]
+                },
+                new CardVariantWriteDto {
+                CardText = "Go again",
+                Cost = 0,
+                Block = 0,
+                Power = 2,
+                Pitch = Contracts.PitchEnumAPI.Yellow,
+                SetDetails = [
+                    new SetDetailWriteDto {
+                        Rarity = Contracts.RarityEnumAPI.Common,
+                        SetId = auroraSetId,
+                        CollectorNumber = "AUR016",
+                        ArtistId = fryArtist
+                        }
+                    ]
+                }
+            ]
+        };
 
-    // [Fact]
-    // public async Task CreateCard_WithSpaces_TrimsCorrectly()
-    // {
-    //     // Arrange
-    //     var text = " Dave   Davington  ";
-    //     var cardCode = " MST ";
-    //     var trueText = "Dave Davington";
-    //     var trueCardCode = "MST";
-    //     var dto = new CardWriteDto(text, cardCode, DateOnly.FromDateTime(DateTime.Now));
+        var cardRepo = new Mock<ICardRepository>();
+        var talentRepo = new Mock<ITalentRepository>();
+        var cardTypeRepo = new Mock<ICardTypeRepository>();
+        var cardSubTypeRepo = new Mock<ICardSubTypeRepository>();
+        var fabClassRepo = new Mock<IFabClassRepository>();
+        var artistRepo = new Mock<IArtistRepository>();
+        var setRepo = new Mock<ISetRepository>();
 
-    //     var repo = new Mock<ICardRepository>();
-    //     var commit = new Mock<ICommit>();
+        cardRepo.Setup(cr => cr.Exists(dto.Name, null, CancellationToken.None))
+            .ReturnsAsync(true);
+        talentRepo.Setup(tr => tr.GetTalentsByPublicIds(new List<Guid> { lightningTalent }, CancellationToken.None))
+            .ReturnsAsync([new Talent { Name = "Lightning" }]);
+        cardTypeRepo.Setup(ctr => ctr.GetCardTypesByPublicIds(new List<Guid> { actionType }, CancellationToken.None))
+            .ReturnsAsync([new CardType { Name = "Action" }]);
+        cardSubTypeRepo.Setup(cstr => cstr.GetCardSubTypesByPublicIds(new List<Guid> { attackSubType }, CancellationToken.None))
+            .ReturnsAsync([new CardSubType { Name = "Attack" }]);
+        fabClassRepo.Setup(fbr => fbr.GetFabClassesByPublicIds(new List<Guid>(), CancellationToken.None))
+            .ReturnsAsync([]);
+        artistRepo.Setup(ar => ar.GetByPublicId(fryArtist, CancellationToken.None))
+            .ReturnsAsync(new Artist { Name = "Edward Chee" });
+        setRepo.Setup(sr => sr.GetByPublicId(auroraSetId, CancellationToken.None))
+            .ReturnsAsync(new Set { Name = "1st Strike: Aurora", SetCode = "AUR", ReleaseDate = new DateOnly(2024, 8, 1) });
 
-    //     repo.Setup(r => r.CheckUniqueness(trueText, trueCardCode, null, CancellationToken.None))
-    //         .ReturnsAsync(new CardUniquenessResult(false, false));
+        var commit = new Mock<ICommit>();
 
-    //     Card? createdCard = null;
+        Card? createdCard = null;
 
-    //     repo.Setup(r => r.Create(It.IsAny<Card>())).Callback<Card>(card => createdCard = card);
+        cardRepo.Setup(r => r.Create(It.IsAny<Card>())).Callback<Card>(card => createdCard = card);
 
-    //     var service = new CardService(commit.Object, repo.Object);
+        var service = new CardService(commit.Object, cardRepo.Object, talentRepo.Object, cardTypeRepo.Object, cardSubTypeRepo.Object, fabClassRepo.Object, artistRepo.Object, setRepo.Object);
+        //Act
+        var ex = await Assert.ThrowsAsync<AlreadyExistsException>(
+            () => service.CreateCard(dto, CancellationToken.None));
+        // Assert
+        ex.Message.Should().Be($"Name '{dto.Name}' already exists.");
 
-    //     // Act
-    //     var result = await service.CreateCard(dto, CancellationToken.None);
+        cardRepo.Verify(r => r.Exists(dto.Name, null, It.IsAny<CancellationToken>()), Times.Once);
+        talentRepo.Verify(r => r.GetTalentsByPublicIds(new List<Guid> { lightningTalent }, It.IsAny<CancellationToken>()), Times.Never);
+        cardTypeRepo.Verify(r => r.GetCardTypesByPublicIds(new List<Guid> { actionType }, It.IsAny<CancellationToken>()), Times.Never);
+        cardSubTypeRepo.Verify(r => r.GetCardSubTypesByPublicIds(new List<Guid> { attackSubType }, It.IsAny<CancellationToken>()), Times.Never);
+        fabClassRepo.Verify(r => r.GetFabClassesByPublicIds(It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()), Times.Never);
+        artistRepo.Verify(r => r.GetByPublicId(fryArtist, It.IsAny<CancellationToken>()), Times.Never);
+        setRepo.Verify(r => r.GetByPublicId(auroraSetId, It.IsAny<CancellationToken>()), Times.Never);
+        cardRepo.Verify(r => r.Create(It.Is<Card>(a => a.Name == dto.Name)), Times.Never);
+        commit.Verify(c => c.SaveChangesAsync(CancellationToken.None), Times.Never);
+    }
+    [Fact]
+    public async Task CreateCard_WhereObjectsDontExist_ThrowsValidationError()
+    {
+        // Arrange
+        var lightningTalent = Guid.NewGuid();
+        var actionType = Guid.NewGuid();
+        var attackSubType = Guid.NewGuid();
+        var auroraSetId = Guid.NewGuid();
+        var fryArtist = Guid.NewGuid();
+        var fabClass = Guid.NewGuid();
+        var dto = new CardWriteDto
+        {
+            Name = "Fry",
+            Talents = [lightningTalent],
+            CardTypes = [actionType],
+            CardSubTypes = [attackSubType],
+            FabClasses = [fabClass],
+            CardVariants = [
+                new CardVariantWriteDto {
+                CardText = "Go again",
+                Cost = 0,
+                Block = 0,
+                Power = 3,
+                Pitch = Contracts.PitchEnumAPI.Red,
+                SetDetails = [
+                    new SetDetailWriteDto {
+                        Rarity = Contracts.RarityEnumAPI.Common,
+                        SetId = auroraSetId,
+                        CollectorNumber = "AUR008",
+                        ArtistId = fryArtist
+                        }
+                    ]
+                },
+                new CardVariantWriteDto {
+                CardText = "Go again",
+                Cost = 0,
+                Block = 0,
+                Power = 2,
+                Pitch = Contracts.PitchEnumAPI.Yellow,
+                SetDetails = [
+                    new SetDetailWriteDto {
+                        Rarity = Contracts.RarityEnumAPI.Common,
+                        SetId = auroraSetId,
+                        CollectorNumber = "AUR016",
+                        ArtistId = fryArtist
+                        }
+                    ]
+                }
+            ]
+        };
 
-    //     // Assert
-    //     createdCard.Should().NotBeNull();
-    //     createdCard!.Name.Should().Be(trueText);
+        var cardRepo = new Mock<ICardRepository>();
+        var talentRepo = new Mock<ITalentRepository>();
+        var cardTypeRepo = new Mock<ICardTypeRepository>();
+        var cardSubTypeRepo = new Mock<ICardSubTypeRepository>();
+        var fabClassRepo = new Mock<IFabClassRepository>();
+        var artistRepo = new Mock<IArtistRepository>();
+        var setRepo = new Mock<ISetRepository>();
 
-    //     result.PublicId.Should().Be(createdCard.PublicId);
-    //     result.Name.Should().Be(createdCard.Name);
+        cardRepo.Setup(cr => cr.Exists(dto.Name, null, CancellationToken.None))
+            .ReturnsAsync(false);
+        talentRepo.Setup(tr => tr.GetTalentsByPublicIds(new List<Guid> { lightningTalent }, CancellationToken.None))
+            .ReturnsAsync([]);
+        cardTypeRepo.Setup(ctr => ctr.GetCardTypesByPublicIds(new List<Guid> { actionType }, CancellationToken.None))
+            .ReturnsAsync([]);
+        cardSubTypeRepo.Setup(cstr => cstr.GetCardSubTypesByPublicIds(new List<Guid> { attackSubType }, CancellationToken.None))
+            .ReturnsAsync([]);
+        fabClassRepo.Setup(fbr => fbr.GetFabClassesByPublicIds(new List<Guid> { fabClass }, CancellationToken.None))
+            .ReturnsAsync([]);
+        artistRepo.Setup(ar => ar.GetByPublicId(fryArtist, CancellationToken.None))
+            .ReturnsAsync((Artist?)null);
+        setRepo.Setup(sr => sr.GetByPublicId(auroraSetId, CancellationToken.None))
+            .ReturnsAsync((Set?)null);
 
-    //     repo.Verify(r => r.CheckUniqueness(trueText, trueCardCode, null, CancellationToken.None), Times.Once);
-    //     repo.Verify(r => r.Create(It.Is<Card>(a => a.Name == trueText)), Times.Once);
+        var commit = new Mock<ICommit>();
 
-    //     commit.Verify(c => c.SaveChangesAsync(CancellationToken.None), Times.Once);
-    // }
+        Card? createdCard = null;
 
-    // [Fact]
-    // public async Task CreateCard_NameAlreadyExists_ThrowsAlreadyExistsException()
-    // {
-    //     // Arrange
-    //     var dto = new CardWriteDto("MistVeil", "MST", DateOnly.FromDateTime(DateTime.Now));
-    //     var repo = new Mock<ICardRepository>();
-    //     var commit = new Mock<ICommit>();
-    //     var service = new CardService(commit.Object, repo.Object);
+        cardRepo.Setup(r => r.Create(It.IsAny<Card>())).Callback<Card>(card => createdCard = card);
 
-    //     repo.Setup(r => r.CheckUniqueness(dto.Name, dto.CardCode, null, CancellationToken.None))
-    //         .ReturnsAsync(new CardUniquenessResult(true, false));
+        var service = new CardService(commit.Object, cardRepo.Object, talentRepo.Object, cardTypeRepo.Object, cardSubTypeRepo.Object, fabClassRepo.Object, artistRepo.Object, setRepo.Object);
 
-    //     // Act
-    //     var ex = await Assert.ThrowsAsync<AlreadyExistsException>(
-    //         () => service.CreateCard(dto, CancellationToken.None));
-    //     // Assert
-    //     ex.Message.Should().Be($"Name '{dto.Name}' already exists.");
+        // Act
+        var ex = await Assert.ThrowsAsync<ValidationException>(
+            () => service.CreateCard(dto, CancellationToken.None));
+        // Assert
+        ex.Message.Should().Be($"One or more validation errors occurred.");
 
-    //     repo.Verify(e => e.Create(It.Is<Card>(a => a.Name == dto.Name)), Times.Never());
-    //     commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-    // }
-
-    // [Fact]
-    // public async Task CreateCard_CodeAlreadyExists_ThrowsAlreadyExistsException()
-    // {
-    //     // Arrange
-    //     var dto = new CardWriteDto("MistVeil", "MST", DateOnly.FromDateTime(DateTime.Now));
-    //     var repo = new Mock<ICardRepository>();
-    //     var commit = new Mock<ICommit>();
-    //     var service = new CardService(commit.Object, repo.Object);
-
-    //     repo.Setup(r => r.CheckUniqueness(dto.Name, dto.CardCode, null, CancellationToken.None))
-    //         .ReturnsAsync(new CardUniquenessResult(false, true));
-
-    //     // Act
-    //     var ex = await Assert.ThrowsAsync<AlreadyExistsException>(
-    //         () => service.CreateCard(dto, CancellationToken.None));
-    //     // Assert
-    //     ex.Message.Should().Be($"CardCode '{dto.CardCode}' already exists.");
-
-    //     repo.Verify(e => e.Create(It.Is<Card>(a => a.CardCode == dto.CardCode)), Times.Never());
-    //     commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-    // }
-
-    // [Fact]
-    // public async Task CreateCard_NameAndCodeAlreadyExists_ThrowsAlreadyExistsException()
-    // {
-    //     // Arrange
-    //     var dto = new CardWriteDto("MistVeil", "MST", DateOnly.FromDateTime(DateTime.Now));
-    //     var repo = new Mock<ICardRepository>();
-    //     var commit = new Mock<ICommit>();
-    //     var service = new CardService(commit.Object, repo.Object);
-
-    //     repo.Setup(r => r.CheckUniqueness(dto.Name, dto.CardCode, null, CancellationToken.None))
-    //         .ReturnsAsync(new CardUniquenessResult(true, true));
-
-    //     // Act
-    //     var ex = await Assert.ThrowsAsync<AlreadyExistsException>(
-    //         () => service.CreateCard(dto, CancellationToken.None));
-    //     // Assert
-    //     ex.Message.Should().Be($"Name '{dto.Name}' and CardCode '{dto.CardCode}' already exist.");
-
-    //     repo.Verify(e => e.Create(It.Is<Card>(a => a.Name == dto.Name)), Times.Never());
-    //     commit.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-    // }
+        cardRepo.Verify(r => r.Exists(dto.Name, null, It.IsAny<CancellationToken>()), Times.Once);
+        talentRepo.Verify(r => r.GetTalentsByPublicIds(new List<Guid> { lightningTalent }, It.IsAny<CancellationToken>()), Times.Once);
+        cardTypeRepo.Verify(r => r.GetCardTypesByPublicIds(new List<Guid> { actionType }, It.IsAny<CancellationToken>()), Times.Once);
+        cardSubTypeRepo.Verify(r => r.GetCardSubTypesByPublicIds(new List<Guid> { attackSubType }, It.IsAny<CancellationToken>()), Times.Once);
+        fabClassRepo.Verify(r => r.GetFabClassesByPublicIds(It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()), Times.Once);
+        artistRepo.Verify(r => r.GetByPublicId(fryArtist, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        setRepo.Verify(r => r.GetByPublicId(auroraSetId, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        cardRepo.Verify(r => r.Create(It.Is<Card>(a => a.Name == dto.Name)), Times.Never);
+        commit.Verify(c => c.SaveChangesAsync(CancellationToken.None), Times.Never);
+    }
     // [Fact]
     // public async Task GetCard_ValidPublicId_ReturnsDto()
     // {

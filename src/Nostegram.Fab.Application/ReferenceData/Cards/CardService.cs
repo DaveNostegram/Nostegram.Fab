@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using Nostegram.Fab.Application.Common.Interfaces;
+﻿using Nostegram.Fab.Application.Common.Interfaces;
 using Nostegram.Fab.Application.Exceptions;
 using Nostegram.Fab.Application.ReferenceData.Artists.Interfaces;
 using Nostegram.Fab.Application.ReferenceData.Cards.Interfaces;
@@ -10,6 +9,7 @@ using Nostegram.Fab.Application.ReferenceData.Sets.Interfaces;
 using Nostegram.Fab.Application.ReferenceData.Talents.Interfaces;
 using Nostegram.Fab.Contracts.Cards;
 using Nostegram.Fab.Domain;
+using Nostegram.Fab.Application.Common.Extensions;
 
 namespace Nostegram.Fab.Application.ReferenceData.Cards;
 
@@ -25,7 +25,7 @@ ISetRepository setRepository
     public async Task<CardDto> CreateCard(CardWriteDto dto, CancellationToken ct)
     {
         await CheckDoesNotExist(dto, null, ct);
-        var validationErrors = new Dictionary<string, string[]>();
+        var validationErrors = new Dictionary<string, List<string>>();
         var subTypesTask = ValidateAndReturnCardSubTypes(dto, validationErrors, ct);
         var typesTask = ValidateAndReturnCardTypes(dto, validationErrors, ct);
         var fabClassesTask = ValidateAndReturnFabClasses(dto, validationErrors, ct);
@@ -121,7 +121,7 @@ ISetRepository setRepository
         if (conflicts.Count > 0)
             throw new AlreadyExistsException(conflicts);
     }
-    private async Task<List<Talent>> ValidateAndReturnTalents(CardWriteDto dto, Dictionary<string, string[]> validationErrors, CancellationToken ct)
+    private async Task<List<Talent>> ValidateAndReturnTalents(CardWriteDto dto, Dictionary<string, List<string>> validationErrors, CancellationToken ct)
     {
         if (dto.Talents.Count != 0)
         {
@@ -130,13 +130,13 @@ ISetRepository setRepository
             if (dto.Talents.Count > talentsExists.Count)
             {
                 var missingCount = dto.Talents.Count - talentsExists.Count;
-                validationErrors["Talents"] = [$"{missingCount} referenced Talent(s) do not exist."];
+                validationErrors.AddValidationError("Talents", $"{missingCount} referenced Talent(s) do not exist.");
             }
             return talentsExists;
         }
         return [];
     }
-    private async Task<List<CardType>> ValidateAndReturnCardTypes(CardWriteDto dto, Dictionary<string, string[]> validationErrors, CancellationToken ct)
+    private async Task<List<CardType>> ValidateAndReturnCardTypes(CardWriteDto dto, Dictionary<string, List<string>> validationErrors, CancellationToken ct)
     {
         if (dto.CardTypes.Count != 0)
         {
@@ -145,13 +145,13 @@ ISetRepository setRepository
             if (dto.CardTypes.Count > cardTypesExists.Count)
             {
                 var missingCount = dto.CardTypes.Count - cardTypesExists.Count;
-                validationErrors["CardTypes"] = [$"{missingCount} referenced CardTypes(s) do not exist."];
+                validationErrors.AddValidationError("CardTypes", $"{missingCount} referenced CardTypes(s) do not exist.");
             }
             return cardTypesExists;
         }
         return [];
     }
-    private async Task<List<CardSubType>> ValidateAndReturnCardSubTypes(CardWriteDto dto, Dictionary<string, string[]> validationErrors, CancellationToken ct)
+    private async Task<List<CardSubType>> ValidateAndReturnCardSubTypes(CardWriteDto dto, Dictionary<string, List<string>> validationErrors, CancellationToken ct)
     {
         if (dto.CardSubTypes.Count != 0)
         {
@@ -160,13 +160,13 @@ ISetRepository setRepository
             if (dto.CardSubTypes.Count > cardSubTypesExists.Count)
             {
                 var missingCount = dto.CardSubTypes.Count - cardSubTypesExists.Count;
-                validationErrors["CardSubTypes"] = [$"{missingCount} referenced CardSubType(s) do not exist."];
+                validationErrors.AddValidationError("CardSubTypes", $"{missingCount} referenced CardSubType(s) do not exist.");
             }
             return cardSubTypesExists;
         }
         return [];
     }
-    private async Task<List<FabClass>> ValidateAndReturnFabClasses(CardWriteDto dto, Dictionary<string, string[]> validationErrors, CancellationToken ct)
+    private async Task<List<FabClass>> ValidateAndReturnFabClasses(CardWriteDto dto, Dictionary<string, List<string>> validationErrors, CancellationToken ct)
     {
         if (dto.FabClasses.Count != 0)
         {
@@ -175,13 +175,13 @@ ISetRepository setRepository
             if (dto.FabClasses.Count > fabClassesExists.Count)
             {
                 var missingCount = dto.FabClasses.Count - fabClassesExists.Count;
-                validationErrors["CardTypes"] = [$"{missingCount} referenced FabClass(s) do not exist."];
+                validationErrors.AddValidationError("CardTypes", $"{missingCount} referenced FabClass(s) do not exist.");
             }
             return fabClassesExists;
         }
         return [];
     }
-    private async Task<Card?> ValidateAndReturnFlipCard(CardWriteDto dto, Dictionary<string, string[]> validationErrors, CancellationToken ct)
+    private async Task<Card?> ValidateAndReturnFlipCard(CardWriteDto dto, Dictionary<string, List<string>> validationErrors, CancellationToken ct)
     {
         var flipCardGuid = dto.FlipCard ?? Guid.Empty;
         if (flipCardGuid != Guid.Empty)
@@ -190,7 +190,7 @@ ISetRepository setRepository
 
             if (flipCard == null)
             {
-                validationErrors["FlipCard"] = [$"Referenced FlipCard does not exist."];
+                validationErrors.AddValidationError("FlipCard", $"Referenced FlipCard does not exist.");
                 return null;
             }
             else
@@ -202,10 +202,11 @@ ISetRepository setRepository
         return null;
     }
 
-    private async Task<List<CardVariant>> ValidateAndReturnCardVariants(CardWriteDto dto, Dictionary<string, string[]> validationErrors, CancellationToken ct)
+    private async Task<List<CardVariant>> ValidateAndReturnCardVariants(CardWriteDto dto, Dictionary<string, List<string>> validationErrors, CancellationToken ct)
     {
         List<CardVariant> cardVariants = [];
         bool isErrorState = false;
+
         foreach (var cardVariantDto in dto.CardVariants)
         {
             CardVariant cardVariant = new()
@@ -225,11 +226,11 @@ ISetRepository setRepository
 
                 if (artist == null)
                 {
-                    validationErrors["CardVariant"] = [$"Referenced Artist inside card variant pitch '{cardVariantDto.Pitch}' does not exist."];
+                    validationErrors.AddValidationError("CardVariant", $"Referenced Artist inside card variant pitch '{cardVariantDto.Pitch}' does not exist.");
                 }
                 if (set == null)
                 {
-                    validationErrors["CardVariant"] = [$"Referenced Set inside card variant pitch '{cardVariantDto.Pitch}' does not exist."];
+                    validationErrors.AddValidationError("CardVariant", $"Referenced Set inside card variant pitch '{cardVariantDto.Pitch}' does not exist.");
                 }
                 if (set == null || artist == null)
                 {
